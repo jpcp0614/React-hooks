@@ -1,7 +1,8 @@
 //import logo from './logo.svg';
+// import PropTypes from 'prop-types';
 import PropTypes from 'prop-types';
+import { useEffect, useMemo, useState } from 'react';
 import './App.css';
-import React, { useCallback, useState } from 'react';
 
 //* Hook - UseState
 // function App() {
@@ -87,57 +88,85 @@ import React, { useCallback, useState } from 'react';
 // }
 
 //* Hook - useCallback
-const Button = React.memo(function Button({ incrementButton }) {
+// const Button = React.memo(function Button({ incrementButton }) {
+//   console.log('Filho renderizou');
+//   return <button onClick={() => incrementButton(10)}>+</button>;
+// });
+
+// function App() {
+//   const [counter, setCounter] = useState(0);
+
+//   const incrementCounter = useCallback((num) => {
+//     setCounter((prevCounter) => prevCounter + num);
+//   }, []);
+
+//   console.log('Pai renderizou');
+
+//   return (
+//     <div className="App">
+//       <p>Teste</p>
+//       <h1>C1: {counter}</h1>
+//       <Button incrementButton={incrementCounter} />
+//     </div>
+//   );
+// }
+
+//* Hook - useMemo
+const Post = ({ post }) => {
   console.log('Filho renderizou');
-  return <button onClick={() => incrementButton(10)}>+</button>;
-});
+  return (
+    <div className="post">
+      <h1>{post.title}</h1>
+      <p>{post.body}</p>
+    </div>
+  );
+};
+
+Post.propTypes = {
+  post: PropTypes.shape({
+    id: PropTypes.number,
+    title: PropTypes.string,
+    body: PropTypes.string,
+  }),
+};
 
 function App() {
-  const [counter, setCounter] = useState(0);
-
-  const incrementCounter = useCallback((num) => {
-    setCounter((prevCounter) => prevCounter + num);
-  }, []);
-
+  const [posts, setPosts] = useState([]);
+  const [value, setValue] = useState('');
   console.log('Pai renderizou');
+
+  // component did mount
+  useEffect(() => {
+    setTimeout(() => {
+      fetch('https://jsonplaceholder.typicode.com/posts')
+        .then((res) => res.json())
+        .then((res) => setPosts(res));
+    }, 5000);
+  }, []);
 
   return (
     <div className="App">
-      <p>Teste</p>
-      <h1>C1: {counter}</h1>
-      <Button incrementButton={incrementCounter} />
+      <p>
+        <input
+          type="search"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+        />
+      </p>
+      {useMemo(() => {
+        return (
+          posts.length > 0 &&
+          posts.map((post) => <Post post={post} key={post.id} />)
+        );
+      }, [posts])}
+
+      {posts.length <= 0 && <p>Ainda não existem posts...</p>}
     </div>
   );
 }
 
-// class App extends Component {
-//   state = {
-//     reverse: false,
-//   };
-
-//   handleClick = () => {
-//     const { reverse } = this.state;
-//     this.setState({ reverse: !reverse });
-//   };
-//   render() {
-//     const { reverse } = this.state;
-//     const reverseClass = reverse ? 'reverse' : '';
-
-//     return (
-//       <div className="App">
-//         <header className="App-header">
-//           <img src={logo} className={`App-logo ${reverseClass}`} alt="logo" />
-//           <button type="button" onClick={this.handleClick}>
-//             Reverse
-//           </button>
-//         </header>
-//       </div>
-//     );
-//   }
-// }
-
 export default App;
 
-Button.propTypes = {
-  incrementButton: PropTypes.func,
-};
+// Button.propTypes = {
+//   incrementButton: PropTypes.func,
+// };
